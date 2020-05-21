@@ -8,6 +8,8 @@ import (
 
 	"github.com/anuvu/zot/pkg/log"
 
+	standalone "github.com/anuvu/zot/internal/standalone"
+	trivyconfig "github.com/anuvu/zot/internal/standalone/config"
 	cveinfo "github.com/anuvu/zot/pkg/extensions/search/cve"
 	"github.com/anuvu/zot/pkg/storage"
 	"go.etcd.io/bbolt"
@@ -18,6 +20,8 @@ type Resolver struct {
 	DB       *bbolt.DB
 	CVEInfo  *cveinfo.CveInfo
 	ImgStore *storage.ImageStore
+	Config   trivyconfig.Config
+	dir      string
 }
 
 // ResConfig ...
@@ -35,7 +39,11 @@ type queryResolver struct{ *Resolver }
 func GetResolverConfig(dir string, log log.Logger, imgstorage *storage.ImageStore) Config {
 	cve := &cveinfo.CveInfo{Log: log, RootDir: dir}
 	db := cve.InitDB(path.Join(dir, "search.db"), true)
-	ResConfig = &Resolver{DB: db, CVEInfo: cve, ImgStore: imgstorage}
+	config, err := trivyconfig.NewConfig()
+	if err != nil {
+		log.Error().Err(err).Msg("Unable to get Trivy Config")
+	}
+	ResConfig = &Resolver{DB: db, CVEInfo: cve, ImgStore: imgstorage, Config: config, dir: dir}
 
 	return Config{Resolvers: ResConfig}
 }
@@ -102,8 +110,23 @@ func (r *queryResolver) CVEListForPkgNameVer(ctx context.Context, text string) (
 func (r *queryResolver) CVEListForImage(ctx context.Context, repo string) ([]*ImgCVEResult, error) {
 	imgResult := []*ImgCVEResult{}
 
+	r.Config.Input = path.Join(r.dir, repo)
+	results, err := standalone.Run(r.Config)
+	if err != nil {
+		return imgResult, err
+	}
+
+	for _, result := range results {
+		copyImgTag := result.Target
+		cveids := []*Cveid{}
+		for _, vulnerability := range result.Vulnerabilities {
+			name := vulnerability.VulnerabilityID
+			cveids = append(cveids, &Cveid{Name: &name})
+		}
+		imgResult = append(imgResult, &ImgCVEResult{Tag: &copyImgTag, CVEIdList: cveids})
+	}
 	// Getting Repo Image Tag and its corresponding package list
-	tagpkgMap, err := r.CVEInfo.GetImageAnnotations(repo)
+	/*tagpkgMap, err := r.CVEInfo.GetImageAnnotations(repo)
 
 	if err != nil {
 		r.CVEInfo.Log.Error().Err(err).Msg("Unable to get package list from Image")
@@ -137,7 +160,7 @@ func (r *queryResolver) CVEListForImage(ctx context.Context, repo string) ([]*Im
 		}
 
 		imgResult = append(imgResult, &ImgCVEResult{Tag: &copyImgTag, CVEIdList: cveids})
-	}
+	}*/
 
 	return imgResult, nil
 }

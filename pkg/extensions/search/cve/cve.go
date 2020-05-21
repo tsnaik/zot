@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/anuvu/zot/errors"
+	"github.com/anuvu/zot/internal/standalone"
+	"github.com/anuvu/zot/internal/standalone/config"
 	"github.com/anuvu/zot/pkg/log"
 
 	"go.etcd.io/bbolt"
@@ -38,14 +40,14 @@ func (cve CveInfo) Connect(dbPath string, readOnly bool) *bbolt.DB {
 
 // UpdateCVEDb ...
 func UpdateCVEDb(dbDir string, log log.Logger, interval time.Duration, readOnly bool) {
+	config, err := config.NewDbConfig(dbDir)
+	if err != nil {
+		log.Error().Err(err).Msg("Unable to get config")
+	}
 	for {
-		curTime := time.Now()
-
-		cveinfo := &CveInfo{Log: log}
-
-		err := cveinfo.StartUpdate(dbDir, 2002, curTime.Year(), readOnly)
+		err = standalone.RunDb(config)
 		if err != nil {
-			panic(err)
+			log.Error().Err(err).Msg("Unable to update DB ")
 		}
 
 		time.Sleep(interval * time.Hour)
