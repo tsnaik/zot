@@ -96,6 +96,8 @@ func NewRootCmd() *cobra.Command {
 
 	rootCmd.AddCommand(serveCmd)
 	rootCmd.AddCommand(gcCmd)
+	rootCmd.AddCommand(NewSearchCmd())
+
 	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "show the version and exit")
 
 	return rootCmd
