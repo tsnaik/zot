@@ -1,20 +1,20 @@
 package cveinfo_test
 
-/*import (
+import (
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
+	"testing"
 
 	cveinfo "github.com/anuvu/zot/pkg/extensions/search/cve"
 	"github.com/anuvu/zot/pkg/log"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 // nolint:gochecknoglobals
 var (
-	dbPath = ""
-	dbDir  = ""
-	cve    *cveinfo.CveInfo
+	cve *cveinfo.CveInfo
 )
 
 func testSetup() error {
@@ -23,16 +23,7 @@ func testSetup() error {
 		return err
 	}
 
-	err = copyFiles("./testdata", dir)
-	if err != nil {
-		return err
-	}
-
-	dbDir = dir
-
-	dbPath = path.Join(dbDir, "search.db")
-
-	cve = &cveinfo.CveInfo{Log: log.NewLogger("debug", ""), RootDir: dbDir}
+	cve = &cveinfo.CveInfo{Log: log.NewLogger("debug", ""), RootDir: dir}
 
 	return nil
 }
@@ -80,4 +71,13 @@ func copyFiles(sourceDir string, destDir string) error {
 	}
 
 	return nil
-}*/
+}
+
+func TestDownloadDB(t *testing.T) {
+	Convey("Download DB", t, func() {
+		err := testSetup()
+		So(err, ShouldBeNil)
+		err = cveinfo.UpdateCVEDb(cve.RootDir, cve.Log, 1, true)
+		So(err, ShouldBeNil)
+	})
+}

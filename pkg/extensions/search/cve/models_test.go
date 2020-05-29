@@ -1,10 +1,17 @@
+// nolint: lll
 package cveinfo_test
 
-/*
 import (
+	"context"
+	"encoding/json"
 	"io/ioutil"
+	"os"
 	"testing"
-	//. "github.com/smartystreets/goconvey/convey"
+	"time"
+
+	"github.com/anuvu/zot/pkg/api"
+	. "github.com/smartystreets/goconvey/convey"
+	"gopkg.in/resty.v1"
 )
 
 const (
@@ -14,15 +21,8 @@ const (
 	passphrase  = "test"
 )
 
-func TestUtil(t *testing.T) {
-	err := testSetup()
-	if err != nil {
-		t.Fatal("Unable to Setup Test environment")
-	}
-}
-
-func TestServerResponse(t *testing.T) {
-	/*Convey("Make a new controller", t, func() {
+func TestCVESearch(t *testing.T) {
+	Convey("Test CVE Search Feature", t, func() {
 		config := api.NewConfig()
 		config.HTTP.Port = SecurePort1
 		htpasswdPath := makeHtpasswdFile()
@@ -34,12 +34,18 @@ func TestServerResponse(t *testing.T) {
 			},
 		}
 		c := api.NewController(config)
-		dir, err := ioutil.TempDir("", "oci-repo-test")
+		/*dir, err := ioutil.TempDir("", "oci-repo-test")
+		if err != nil {
+			panic(err)
+		}*/
+
+		err := copyFiles("./testdata", cve.RootDir)
 		if err != nil {
 			panic(err)
 		}
-		defer os.RemoveAll(dir)
-		c.Config.Storage.RootDirectory = dir
+
+		defer os.RemoveAll(cve.RootDir)
+		c.Config.Storage.RootDirectory = cve.RootDir
 		c.Config.Extensions.Search.CVE.UpdateInterval = 1
 		go func() {
 			// this blocks
@@ -63,7 +69,7 @@ func TestServerResponse(t *testing.T) {
 		}()
 
 		// without creds, should get access error
-		resp, err := resty.R().Get(BaseURL1 + "/v2/")
+		resp, err := resty.R().Get(BaseURL1 + "/query/")
 		So(err, ShouldBeNil)
 		So(resp, ShouldNotBeNil)
 		So(resp.StatusCode(), ShouldEqual, 401)
@@ -76,9 +82,34 @@ func TestServerResponse(t *testing.T) {
 		So(resp, ShouldNotBeNil)
 		So(resp.StatusCode(), ShouldEqual, 404)
 
-		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/v2/")
+		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/query/")
 		So(resp, ShouldNotBeNil)
 		So(resp.StatusCode(), ShouldEqual, 200)
+
+		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/query?query={CVEListForImage(repo:\"centos\"){Tag%20CVEList{Id%20Description%20Severity}}}")
+		So(resp, ShouldNotBeNil)
+		So(resp.StatusCode(), ShouldEqual, 200)
+
+		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/query?query={ImageListForCVE(text:\"CVE-2018-20482\"){Name%20Tags}}")
+		So(resp, ShouldNotBeNil)
+		So(resp.StatusCode(), ShouldEqual, 200)
+
+		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/query?query={CVEListForImage(repo:\"cntos\"){Tag%20CVEList{Id%20Description%20Severity}}}")
+		So(resp, ShouldNotBeNil)
+		So(resp.StatusCode(), ShouldEqual, 200)
+
+		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/query?query={ImageListForCVE(text:\"CVE-201-20482\"){Name%20Tags}}")
+		So(resp, ShouldNotBeNil)
+		So(resp.StatusCode(), ShouldEqual, 200)
+
+		// Testing Invalid Search URL
+		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/query?query={CVEListForImage(repo:\"centos\"){Ta%20CVEList{Id%20Description%20Severity}}}")
+		So(resp, ShouldNotBeNil)
+		So(resp.StatusCode(), ShouldEqual, 422)
+
+		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/query?query={ImageListForCVE(tet:\"CVE-2018-20482\"){Name%20Tags}}")
+		So(resp, ShouldNotBeNil)
+		So(resp.StatusCode(), ShouldEqual, 422)
 	})
 }
 
@@ -96,4 +127,3 @@ func makeHtpasswdFile() string {
 
 	return f.Name()
 }
-*/
