@@ -6,12 +6,14 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/apex/log v1.4.0
 	github.com/briandowns/spinner v1.11.1
+	github.com/casbin/casbin/v2 v2.6.11
 	github.com/chartmuseum/auth v0.4.0
 	github.com/dustin/go-humanize v1.0.0
 	github.com/getlantern/deepcopy v0.0.0-20160317154340-7f45deb8130a
 	github.com/go-chi/chi v4.0.2+incompatible // indirect
 	github.com/go-ldap/ldap/v3 v3.1.3
 	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gorilla/context v1.1.1
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
 	github.com/json-iterator/go v1.1.9
@@ -24,6 +26,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/opencontainers/umoci v0.4.7-0.20200704224433-977db481b72c
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2
+	github.com/qiangmzsx/string-adapter/v2 v2.0.2
 	github.com/rs/zerolog v1.17.2
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/cobra v0.0.5

@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["accesscontrol.go"],
+    importpath = "github.com/anuvu/zot/pkg/extensions/accesscontrol",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/log:go_default_library",
+        "@com_github_casbin_casbin_v2//:go_default_library",
+        "@com_github_casbin_casbin_v2//model:go_default_library",
+        "@com_github_json_iterator_go//:go_default_library",
+        "@com_github_qiangmzsx_string_adapter_v2//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["accesscontrol_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//pkg/log:go_default_library",
+        "@com_github_smartystreets_goconvey//convey:go_default_library",
+    ],
+)

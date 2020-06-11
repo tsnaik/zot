@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/context"
+
 	"github.com/anuvu/zot/errors"
 	"github.com/chartmuseum/auth"
 	"github.com/gorilla/mux"
@@ -215,6 +217,8 @@ func basicAuthHandler(c *Controller) mux.MiddlewareFunc {
 
 			username := pair[0]
 			passphrase := pair[1]
+
+			context.Set(r, "username", username)
 
 			// first, HTTPPassword authN (which is local)
 			passphraseHash, ok := credMap[username]

@@ -72,6 +72,7 @@ func (rh *RouteHandler) blobLockWrapper(f func(w http.ResponseWriter,
 
 func (rh *RouteHandler) SetupRoutes() {
 	rh.c.Router.Use(AuthHandler(rh.c))
+	rh.c.Router.Use(AccessHandler(rh.c))
 	g := rh.c.Router.PathPrefix(RoutePrefix).Subrouter()
 	{
 		g.HandleFunc(fmt.Sprintf("/{name:%s}/tags/list", NameRegexp.String()),

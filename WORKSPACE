@@ -1570,3 +1570,38 @@ go_repository(
     sum = "h1:c2HOrn5iMezYjSlGPncknSEr/8x5LELb/ilJbXi9DEA=",
     version = "v0.0.0-20190121172915-509febef88a4",
 )
+
+go_repository(
+    name = "com_github_casbin_casbin",
+    importpath = "github.com/casbin/casbin",
+    sum = "h1:ucjbS5zTrmSLtH4XogqOG920Poe6QatdXtz1FEbApeM=",
+    version = "v1.9.1",
+)
+
+go_repository(
+    name = "com_github_casbin_casbin_v2",
+    importpath = "github.com/casbin/casbin/v2",
+    sum = "h1:VBPCH8yKZArIYcxPOkVm2ItX4fkziddO0XK4mXlwJm8=",
+    version = "v2.6.11",
+)
+
+go_repository(
+    name = "com_github_gorilla_context",
+    importpath = "github.com/gorilla/context",
+    sum = "h1:AWwleXJkX/nhcU9bZSnZoi3h/qGYqQAGhq6zZe/aQW8=",
+    version = "v1.1.1",
+)
+
+go_repository(
+    name = "com_github_knetic_govaluate",
+    importpath = "github.com/Knetic/govaluate",
+    sum = "h1:1G1pk05UrOh0NlF1oeaaix1x8XzrfjIDK47TY0Zehcw=",
+    version = "v3.0.1-0.20171022003610-9aa49832a739+incompatible",
+)
+
+go_repository(
+    name = "com_github_qiangmzsx_string_adapter_v2",
+    importpath = "github.com/qiangmzsx/string-adapter/v2",
+    sum = "h1:/c+feL05smeBBegrVjiGbbxLHEZ9BLWtOeM9lpkFcRA=",
+    version = "v2.0.2",
+)

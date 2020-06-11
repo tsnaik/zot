@@ -1,0 +1,18 @@
+{
+    "repositories": [
+        {
+            "name": "repo-name",
+            "users": [
+                {
+                    "username": "alice", 
+                    "allowAPIs": [
+                        {
+                            "path": "/v2/{name}/tags/list",
+                            "method": "GET"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

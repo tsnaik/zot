@@ -28,7 +28,9 @@
       },
       "failDelay": 5
     },
-    "allowReadAccess": false
+    "allowReadAccess": false,
+    "accessControlConfigPath": "examples/access-config.json"
+
   },
   "log":{
     "level":"debug",

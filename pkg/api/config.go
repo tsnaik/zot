@@ -40,13 +40,14 @@ type BearerConfig struct {
 }
 
 type HTTPConfig struct {
-	Address         string
-	Port            string
-	TLS             *TLSConfig
-	Auth            *AuthConfig
-	Realm           string
-	AllowReadAccess bool `mapstructure:",omitempty"`
-	ReadOnly        bool `mapstructure:",omitempty"`
+	Address                 string
+	Port                    string
+	TLS                     *TLSConfig
+	Auth                    *AuthConfig
+	Realm                   string
+	AllowReadAccess         bool `mapstructure:",omitempty"`
+	ReadOnly                bool `mapstructure:",omitempty"`
+	AccessControlConfigPath string
 }
 
 type LDAPConfig struct {

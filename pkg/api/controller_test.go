@@ -91,6 +91,19 @@ func makeHtpasswdFileFromString(fileContent string) string {
 	return f.Name()
 }
 
+func makeAccessControlConfigFile(content string) string {
+	f, err := ioutil.TempFile("", "access-config-")
+	if err != nil {
+		panic(err)
+	}
+
+	if err := ioutil.WriteFile(f.Name(), []byte(content), 0600); err != nil {
+		panic(err)
+	}
+
+	return f.Name()
+}
+
 func getCredString(username, password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
@@ -1386,6 +1399,72 @@ func TestBearerAuthWithAllowReadAccess(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(resp, ShouldNotBeNil)
 		So(resp.StatusCode(), ShouldEqual, 401)
+	})
+}
+
+func TestBasicAuthAccessControl(t *testing.T) {
+	Convey("Test access control", t, func() {
+		config := api.NewConfig()
+		config.HTTP.Port = SecurePort1
+		htpasswdPath := makeHtpasswdFile()
+		content := `{"repositories":[{"name":"oci-repo-test",
+		"users":[{"username":"test","allowAPIs":[{"path":"/v2/","method":"GET"}]}]}]}`
+		accessConfigPath := makeAccessControlConfigFile(content)
+
+		defer os.Remove(htpasswdPath)
+		defer os.Remove(accessConfigPath)
+		config.HTTP.AccessControlConfigPath = accessConfigPath
+		config.HTTP.Auth = &api.AuthConfig{
+			HTPasswd: api.AuthHTPasswd{
+				Path: htpasswdPath,
+			},
+		}
+		c := api.NewController(config)
+		dir, err := ioutil.TempDir("", "oci-repo-test")
+		if err != nil {
+			panic(err)
+		}
+		defer os.RemoveAll(dir)
+		c.Config.Storage.RootDirectory = dir
+		go func() {
+			// this blocks
+			if err := c.Run(); err != nil {
+				return
+			}
+		}()
+
+		// wait till ready
+		for {
+			_, err := resty.R().Get(BaseURL1)
+			if err == nil {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+
+		defer func() {
+			ctx := context.Background()
+			_ = c.Server.Shutdown(ctx)
+		}()
+
+		// without creds, should get access error
+		resp, err := resty.R().Get(BaseURL1 + "/v2/")
+		So(err, ShouldBeNil)
+		So(resp, ShouldNotBeNil)
+		So(resp.StatusCode(), ShouldEqual, 401)
+		var e api.Error
+		err = json.Unmarshal(resp.Body(), &e)
+		So(err, ShouldBeNil)
+
+		// should get expected status code for /v2/
+		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/v2/")
+		So(resp, ShouldNotBeNil)
+		So(resp.StatusCode(), ShouldEqual, 200)
+
+		// should get access denied for any other path
+		resp, _ = resty.R().SetBasicAuth(username, passphrase).Get(BaseURL1 + "/v2/_catalog")
+		So(resp, ShouldNotBeNil)
+		So(resp.StatusCode(), ShouldEqual, 403)
 	})
 }
 

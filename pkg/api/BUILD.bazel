@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
+        "access.go",
         "auth.go",
         "config.go",
         "controller.go",
@@ -16,11 +17,13 @@ go_library(
     deps = [
         "//docs:go_default_library",
         "//errors:go_default_library",
+        "//pkg/extensions/accesscontrol:go_default_library",
         "//pkg/log:go_default_library",
         "//pkg/storage:go_default_library",
         "@com_github_chartmuseum_auth//:go_default_library",
         "@com_github_getlantern_deepcopy//:go_default_library",
         "@com_github_go_ldap_ldap_v3//:go_default_library",
+        "@com_github_gorilla_context//:go_default_library",
         "@com_github_gorilla_handlers//:go_default_library",
         "@com_github_gorilla_mux//:go_default_library",
         "@com_github_json_iterator_go//:go_default_library",
