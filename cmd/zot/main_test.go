@@ -14,7 +14,7 @@ func TestIntegration(t *testing.T) {
 		c := api.NewController(config)
 		So(c, ShouldNotBeNil)
 
-		cl := cli.NewRootCmd()
+		cl := cli.NewRootCmd("/tmp")
 		So(cl, ShouldNotBeNil)
 
 		So(cl.Execute(), ShouldBeNil)

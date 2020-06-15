@@ -7,7 +7,14 @@ import (
 )
 
 func main() {
-	if err := cli.NewRootCmd().Execute(); err != nil {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+
+	configPath := home + "/.zot"
+
+	if err := cli.NewRootCmd(configPath).Execute(); err != nil {
 		os.Exit(1)
 	}
 }

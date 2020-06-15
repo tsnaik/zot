@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -10,10 +11,28 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func makeConfigFile(content string) string {
+	f, err := ioutil.TempFile("", "config-*.properties")
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	text := []byte(content)
+	if err := ioutil.WriteFile(f.Name(), text, 0644); err != nil {
+		panic(err)
+	}
+
+	return f.Name()
+}
+
 func TestSearchCveCmd(t *testing.T) {
 	Convey("Test cve help", t, func() {
 		args := []string{"--help"}
-		cmd := NewCveCommand(new(mockService))
+		configPath := makeConfigFile("showSpinner = false")
+		defer os.Remove(configPath)
+		cmd := NewCveCommand(new(mockService), configPath)
 		buff := bytes.NewBufferString("")
 		cmd.SetOut(buff)
 		cmd.SetErr(ioutil.Discard)
@@ -23,7 +42,9 @@ func TestSearchCveCmd(t *testing.T) {
 		So(err, ShouldBeNil)
 		Convey("with the shorthand", func() {
 			args[0] = "-h"
-			cmd := NewCveCommand(new(mockService))
+			configPath := makeConfigFile("showSpinner = false")
+			defer os.Remove(configPath)
+			cmd := NewCveCommand(new(mockService), configPath)
 			buff := bytes.NewBufferString("")
 			cmd.SetOut(buff)
 			cmd.SetErr(ioutil.Discard)
@@ -33,9 +54,11 @@ func TestSearchCveCmd(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
-	Convey("Test cve no url", t, func() {
+	Convey("Test cve no url no config", t, func() {
 		args := []string{"--cve-id", "dummyIdRandom"}
-		cmd := NewCveCommand(new(mockService))
+		configPath := makeConfigFile("showSpinner = false")
+		defer os.Remove(configPath)
+		cmd := NewCveCommand(new(mockService), configPath)
 		buff := bytes.NewBufferString("")
 		cmd.SetOut(buff)
 		cmd.SetErr(ioutil.Discard)
@@ -46,17 +69,21 @@ func TestSearchCveCmd(t *testing.T) {
 
 	Convey("Test cve no params", t, func() {
 		args := []string{"--url", "someUrl"}
-		cmd := NewCveCommand(new(mockService))
+		configPath := makeConfigFile("showSpinner = false")
+		defer os.Remove(configPath)
+		cmd := NewCveCommand(new(mockService), configPath)
 		buff := bytes.NewBufferString("")
 		cmd.SetOut(buff)
 		cmd.SetErr(ioutil.Discard)
 		cmd.SetArgs(args)
 		err := cmd.Execute()
-		So(err, ShouldEqual, zotErrors.ErrInvalidArgs)
+		So(err, ShouldEqual, zotErrors.ErrInvalidFlagsCombination)
 	})
 	Convey("Test invalid arg combination", t, func() {
 		args := []string{"--cve-id", "dummyIdRandom", "--image-name", "dummyImageName", "--url", "someUrl"}
-		cmd := NewCveCommand(new(mockService))
+		configPath := makeConfigFile("showSpinner = false")
+		defer os.Remove(configPath)
+		cmd := NewCveCommand(new(mockService), configPath)
 		buff := bytes.NewBufferString("")
 		cmd.SetOut(buff)
 		cmd.SetErr(ioutil.Discard)
@@ -66,7 +93,9 @@ func TestSearchCveCmd(t *testing.T) {
 	})
 	Convey("Test cve invalid url", t, func() {
 		args := []string{"--image-name", "dummyImageName", "--url", "invalidUrl"}
-		cmd := NewCveCommand(new(searchService))
+		configPath := makeConfigFile("showSpinner = false")
+		defer os.Remove(configPath)
+		cmd := NewCveCommand(new(searchService), configPath)
 		buff := bytes.NewBufferString("")
 		cmd.SetOut(buff)
 		cmd.SetErr(ioutil.Discard)
@@ -76,7 +105,9 @@ func TestSearchCveCmd(t *testing.T) {
 	})
 	Convey("Test cve invalid url port", t, func() {
 		args := []string{"--image-name", "dummyImageName", "--url", "http://localhost:99999"}
-		cmd := NewCveCommand(new(searchService))
+		configPath := makeConfigFile("showSpinner = false")
+		defer os.Remove(configPath)
+		cmd := NewCveCommand(new(searchService), configPath)
 		buff := bytes.NewBufferString("")
 		cmd.SetOut(buff)
 		cmd.SetErr(ioutil.Discard)
@@ -86,7 +117,9 @@ func TestSearchCveCmd(t *testing.T) {
 	})
 	Convey("Test cve invalid url port with user", t, func() {
 		args := []string{"--image-name", "dummyImageName", "--url", "http://localhost:99999", "--user", "test:test"}
-		cmd := NewCveCommand(new(searchService))
+		configPath := makeConfigFile("showSpinner = false")
+		defer os.Remove(configPath)
+		cmd := NewCveCommand(new(searchService), configPath)
 		buff := bytes.NewBufferString("")
 		cmd.SetOut(buff)
 		cmd.SetErr(ioutil.Discard)
@@ -96,7 +129,9 @@ func TestSearchCveCmd(t *testing.T) {
 	})
 	Convey("Test cve by image name", t, func() {
 		args := []string{"--image-name", "dummyImageName", "--url", "someUrl"}
-		cmd := NewCveCommand(new(mockService))
+		configPath := makeConfigFile("showSpinner = false")
+		defer os.Remove(configPath)
+		cmd := NewCveCommand(new(mockService), configPath)
 		buff := bytes.NewBufferString("")
 		cmd.SetOut(buff)
 		cmd.SetErr(ioutil.Discard)
@@ -107,7 +142,9 @@ func TestSearchCveCmd(t *testing.T) {
 		Convey("using shorthand", func() {
 			args := []string{"-I", "dummyImageNameShort", "--url", "someUrl"}
 			buff := bytes.NewBufferString("")
-			cmd := NewCveCommand(new(mockService))
+			configPath := makeConfigFile("showSpinner = false")
+			defer os.Remove(configPath)
+			cmd := NewCveCommand(new(mockService), configPath)
 			cmd.SetOut(buff)
 			cmd.SetErr(ioutil.Discard)
 			cmd.SetArgs(args)
@@ -117,9 +154,27 @@ func TestSearchCveCmd(t *testing.T) {
 		})
 	})
 
+	Convey("Test cve url from config", t, func() {
+		args := []string{"--image-name", "dummyImageName"}
+
+		configPath := makeConfigFile("showSpinner = false\nurl=url-test.com")
+		defer os.Remove(configPath)
+
+		cmd := NewCveCommand(new(mockService), configPath)
+		buff := bytes.NewBufferString("")
+		cmd.SetOut(buff)
+		cmd.SetErr(ioutil.Discard)
+		cmd.SetArgs(args)
+		err := cmd.Execute()
+		So(strings.TrimSpace(buff.String()), ShouldEqual, "")
+		So(err, ShouldBeNil)
+	})
+
 	Convey("Test cve affected images by cve id", t, func() {
 		args := []string{"--cve-id", "dummyCveID", "--url", "someUrlImage"}
-		imageCmd := NewCveCommand(new(mockService))
+		configPath := makeConfigFile("showSpinner = false")
+		defer os.Remove(configPath)
+		imageCmd := NewCveCommand(new(mockService), configPath)
 		buff := bytes.NewBufferString("")
 		imageCmd.SetOut(buff)
 		imageCmd.SetErr(ioutil.Discard)
@@ -130,7 +185,9 @@ func TestSearchCveCmd(t *testing.T) {
 		Convey("using shorthand", func() {
 			args := []string{"-i", "dummyCveIDShort", "--url", "someUrlImage"}
 			buff := bytes.NewBufferString("")
-			imageCmd := NewCveCommand(new(mockService))
+			configPath := makeConfigFile("showSpinner = false")
+			defer os.Remove(configPath)
+			imageCmd := NewCveCommand(new(mockService), configPath)
 			imageCmd.SetOut(buff)
 			imageCmd.SetErr(ioutil.Discard)
 			imageCmd.SetArgs(args)

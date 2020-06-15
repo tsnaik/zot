@@ -3,11 +3,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
+        "configCmd.go",
         "cveCmd.go",
         "cveSearchService.go",
         "cveSearchers.go",
+        "listCmd.go",
         "root.go",
-        "searchCmd.go",
     ],
     importpath = "github.com/anuvu/zot/pkg/cli",
     visibility = ["//visibility:public"],
@@ -30,14 +31,16 @@ go_test(
     name = "go_default_test",
     timeout = "short",
     srcs = [
+        "configCmd_test.go",
         "cveCmd_test.go",
+        "listCmd_test.go",
         "root_test.go",
-        "searchCmd_test.go",
     ],
     embed = [":go_default_library"],
     race = "on",
     deps = [
         "//errors:go_default_library",
+        "@com_github_kardianos_osext//:go_default_library",
         "@com_github_smartystreets_goconvey//convey:go_default_library",
     ],
 )

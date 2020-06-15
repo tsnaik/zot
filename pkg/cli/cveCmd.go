@@ -7,9 +7,10 @@ import (
 	zotErrors "github.com/anuvu/zot/errors"
 	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-func NewCveCommand(searchService CveSearchService) *cobra.Command {
+func NewCveCommand(searchService CveSearchService, configPath string) *cobra.Command {
 	searchCveParams := make(map[string]*string)
 
 	var servURL string
@@ -24,15 +25,28 @@ func NewCveCommand(searchService CveSearchService) *cobra.Command {
 			spin := spinner.New(spinner.CharSets[39], spinnerDuration, spinner.WithWriter(cmd.ErrOrStderr()))
 			spin.Prefix = "Searching... "
 
-			if cmd.Flags().NFlag() == 1 {
-				return zotErrors.ErrInvalidArgs
+			err := setupConfig(configPath)
+			if err != nil {
+				return err
 			}
 
-			spin.Start()
+			if servURL == "" {
+				if viper.InConfig("url") {
+					servURL = viper.GetString("url")
+				} else {
+					return zotErrors.ErrInvalidArgs
+				}
+			}
+
+			if viper.GetBool("showSpinner") {
+				spin.Start()
+			}
 
 			result, err := searchCve(searchCveParams, searchService, &servURL, &user)
 
-			spin.Stop()
+			if viper.GetBool("showSpinner") {
+				spin.Stop()
+			}
 
 			if err != nil {
 				return err
@@ -53,8 +67,7 @@ func setupCmdFlags(cveCmd *cobra.Command, searchCveParams map[string]*string, se
 	searchCveParams["imageName"] = cveCmd.Flags().StringP("image-name", "I", "", "Find by image name for affected CVEs")
 	searchCveParams["cveID"] = cveCmd.Flags().StringP("cve-id", "i", "", "Find images affected by a CVE")
 
-	cveCmd.Flags().StringVar(servURL, "url", "", "Specify zot server URL [required]")
-	_ = cveCmd.MarkFlagRequired("url")
+	cveCmd.Flags().StringVar(servURL, "url", "", "Specify zot server URL if not configured")
 	cveCmd.Flags().StringVarP(user, "user", "u", "", `User Credentials of zot server in "username:password" format`)
 }
 
